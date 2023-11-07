@@ -3,10 +3,12 @@ import tensorflow as tf
 from transformers import DistilBertTokenizer
 
 # Cargar el modelo
-model = tf.saved_model.load("/home/cano/MINE/DL/clasificador/model")
+model = tf.saved_model.load("exported_model")
 
 # Tokenizador
 tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
+
+label_mapping = {0: "negative", 1: "neutral", 2: "positive"}
 
 st.title("Clasificación de Texto")
 
@@ -23,6 +25,10 @@ if st.button("Clasificar"):
     text_padded = tf.keras.preprocessing.sequence.pad_sequences(text_encoded, maxlen=max_sequence_length, padding='post', truncating='post')
 
     # Realizar la predicción con el modelo
-    prediction = model(text_padded)  # Esta es solo una demostración, debes adaptarla a tu modelo
+    raw_prediction = model(text_padded)
+    predicted_labels_indices = tf.argmax(raw_prediction, axis=1)  # Obtener los índices de las etiquetas
 
-    st.write("Resultado de la clasificación:", prediction)
+    # Convertir los índices de las etiquetas a etiquetas originales utilizando el diccionario
+    predicted_labels = [label_mapping[index] for index in predicted_labels_indices.numpy()]
+
+    st.write("Resultado de la clasificación:", predicted_labels[0])
